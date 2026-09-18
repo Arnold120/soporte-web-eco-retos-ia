@@ -1,0 +1,16 @@
+# Dependencias (NUNCA se suben: se instalan en Netlify/Linux)
+node_modules/
+
+# Artefactos de build (los genera `npm run build`)
+dist/
+
+# Netlify
+.netlify/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema
+.DS_Store
+Thumbs.db

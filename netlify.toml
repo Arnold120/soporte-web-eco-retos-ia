@@ -1,11 +1,19 @@
 # Configuración de despliegue de Netlify
-# - Build command  : npm run build
+# - Node 20 (LTS) para que las dependencias nativas (esbuild/rollup) se
+#   instalen con los binarios correctos de Linux.
+# - `npm ci` fuerza una instalación limpia y determinista desde
+#   package-lock.json: node_modules (y node_modules/.bin/vite) se recrean
+#   en el entorno Linux con sus permisos de ejecución. El repositorio ya no
+#   incluye node_modules.
 # - Publish folder : dist
 # - SPA fallback   : todas las rutas sirven index.html (react-router)
 
 [build]
-  command = "npm run build"
+  command = "npm ci && npm run build"
   publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
 
 [[redirects]]
   from = "/*"
