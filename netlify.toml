@@ -1,0 +1,13 @@
+# Configuración de despliegue de Netlify
+# - Build command  : npm run build
+# - Publish folder : dist
+# - SPA fallback   : todas las rutas sirven index.html (react-router)
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
