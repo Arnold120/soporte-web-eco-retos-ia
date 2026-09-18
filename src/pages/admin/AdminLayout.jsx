@@ -4,7 +4,7 @@ import { useApp } from '../../store/AppContext.jsx';
 import { Avatar } from '../../components/ui.jsx';
 import NotifBell from '../../components/NotifBell.jsx';
 import ThemeToggle from '../../components/ThemeToggle.jsx';
-import { ensenarAdminDashboard } from '../../services/supportService.js';
+import { ensenarAdminDashboard, registrarAccesoPanel } from '../../services/supportService.js';
 
 const NAV = [
   { seccion: 'General' },
@@ -37,6 +37,11 @@ export default function AdminLayout() {
     document.addEventListener('er.ui:refresh', cargarResumen);
     return () => document.removeEventListener('er.ui:refresh', cargarResumen);
   }, [cargarResumen]);
+
+  /* Auditoría: registra el acceso al panel una vez por montaje. */
+  useEffect(() => {
+    registrarAccesoPanel();
+  }, []);
 
   return (
     <div className="admin-layout">

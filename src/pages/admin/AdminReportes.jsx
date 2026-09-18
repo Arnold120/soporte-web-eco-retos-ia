@@ -7,6 +7,7 @@ import {
   reportesAdmin,
   resolverReporteAdmin,
   descartarReporteAdmin,
+  moderarContenido,
 } from '../../services/supportService.js';
 import { Pill, EmptyState, Modal, Cargando, ErrorBox } from '../../components/ui.jsx';
 import Pagination from '../../components/Pagination.jsx';
@@ -68,6 +69,33 @@ export default function AdminReportes() {
       recargar();
     } catch (e) {
       verNotif(e.message || 'No se pudo descartar.', 'error');
+    }
+  };
+
+  const moderar = async (r, objetivo, accion) => {
+    const id = objetivo === 'PUBLICACION' ? r.publicacionId : r.comentarioId;
+    if (!id) return;
+    const esOcultar = accion === 'OCULTAR';
+    const ok = await confirmar({
+      titulo: esOcultar ? 'Ocultar publicación' : 'Eliminar comentario',
+      mensaje: esOcultar
+        ? `La publicación #${id} dejará de ser visible en la app. El autor recibirá una notificación con la advertencia.`
+        : `El comentario #${id} se eliminará definitivamente. El autor recibirá una notificación con la advertencia.`,
+      textoBoton: esOcultar ? 'Ocultar' : 'Eliminar',
+      peligro: true,
+    });
+    if (!ok) return;
+    try {
+      await moderarContenido({
+        objetivo,
+        id,
+        accion,
+        motivo: `Reporte #${r.id}: ${(r.descripcion || r.motivo || '').slice(0, 200)}`,
+      });
+      verNotif('Acción aplicada y registrada en auditoría.', 'success');
+      recargar();
+    } catch (e) {
+      verNotif(e.message || 'No se pudo aplicar la acción.', 'error');
     }
   };
 
@@ -155,6 +183,16 @@ export default function AdminReportes() {
                       <td className="muted small">{hace(r.fecha)}</td>
                       <td>
                         <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+                          {r.publicacionId && (
+                            <button className="btn btn-danger-ghost btn-sm" onClick={() => moderar(r, 'PUBLICACION', 'OCULTAR')}>
+                              Ocultar publicación
+                            </button>
+                          )}
+                          {r.comentarioId && (
+                            <button className="btn btn-danger-ghost btn-sm" onClick={() => moderar(r, 'COMENTARIO', 'ELIMINAR')}>
+                              Eliminar comentario
+                            </button>
+                          )}
                           {r.estado === ESTADO_REPORTE.PENDIENTE ? (
                             <>
                               <button className="btn btn-primary btn-sm" onClick={() => { setEnRevisar(r); setAccion(ACCIONES[0][0]); }}>

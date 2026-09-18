@@ -13,6 +13,7 @@ import {
   entrarDemo,
   sesionGuardada,
   loginConToken,
+  loginConCodigo,
 } from '../services/authService.js';
 import { Modal } from '../components/ui.jsx';
 
@@ -94,6 +95,12 @@ export function AppProvider({ children }) {
     return s;
   }, []);
 
+  const accederConCodigo = useCallback(async (codigo) => {
+    const s = await loginConCodigo(codigo);
+    if (s) setSesion(s);
+    return s;
+  }, []);
+
   const salir = useCallback(() => {
     cerrarSesion();
     setSesion(null);
@@ -130,6 +137,7 @@ export function AppProvider({ children }) {
       acceder,
       accederDemo,
       accederConToken,
+      accederConCodigo,
       salir,
       notif,
       verNotif,
@@ -137,7 +145,7 @@ export function AppProvider({ children }) {
       alternarTema,
       confirmar,
     }),
-    [sesion, esAdmin, acceder, accederDemo, accederConToken, salir, notif, verNotif, tema, alternarTema, confirmar],
+    [sesion, esAdmin, acceder, accederDemo, accederConToken, accederConCodigo, salir, notif, verNotif, tema, alternarTema, confirmar],
   );
 
   return (

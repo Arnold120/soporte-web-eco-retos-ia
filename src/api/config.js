@@ -90,8 +90,12 @@ export const ENDPOINTS = {
     evidencias: url(`${SUPPORT_BASE}/evidencias`),
     evidencia: (id) => url(`${SUPPORT_BASE}/evidencias/${id}`),
     auditoria: url(`${SUPPORT_BASE}/auditoria`),
+    auditoriaAcceso: url(`${SUPPORT_BASE}/auditoria/acceso`),
     admins: url(`${SUPPORT_BASE}/admins`),
     admin: (id) => url(`${SUPPORT_BASE}/admins/${id}`),
     config: url(`${SUPPORT_BASE}/config`),
+    moderacion: url(`${SUPPORT_BASE}/moderacion/contenido`),
+    sesionCodigo: url(`${SUPPORT_BASE}/sesion/codigo`),
+    sesionCanjear: url(`${SUPPORT_BASE}/sesion/canjear`),
   },
 };

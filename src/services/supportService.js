@@ -221,7 +221,10 @@ export async function ensenarAdminDashboard() {
 
 export async function asignarCaso(id, adminNombre, adminId = null) {
   if (!DEMO_MODE) {
-    return soporteApi.actualizarCaso(id, { adminNombre, adminId, estado: ESTADO_CASO.ASIGNADO });
+    return soporteApi.actualizarCaso(id, {
+      estado: ESTADO_CASO.ASIGNADO,
+      ...(adminId ? { adminUsuarioId: Number(adminId) } : {}),
+    });
   }
   const admin = adminId
     ? mock.getAdmins().find((a) => a.id === Number(adminId))
@@ -329,7 +332,7 @@ export async function decidirEvidencia(id, resultado, motivoRechazo = '') {
     return httpRequest({
       url: ENDPOINTS.soporte.evidencia(id),
       method: 'PATCH',
-      body: { estado: resultado, motivoRechazo },
+      body: { estado: resultado, motivoRechazo, puntosObtenidos: 0 },
     });
   }
   return mock.actualizarEvidencia(id, resultado, resultado === 'RECHAZADO' ? motivoRechazo : '');
@@ -344,9 +347,11 @@ export function obtenerAdminPorNombre(nombre) {
   return mock.getAdmins().find((a) => a.nombre === nombre) ?? null;
 }
 
-export async function crearAdmin({ nombre, correo }) {
-  if (!DEMO_MODE) return soporteApi.crearAdmin({ nombre, correo });
-  return mock.agregarAdmin({ nombre, correo });
+export async function crearAdmin({ nombre, correo, contrasena }) {
+  if (!DEMO_MODE) return soporteApi.crearAdmin({ nombre, correo, contrasena });
+  const admin = mock.agregarAdmin({ nombre, correo });
+  if (!admin) return { admin: null, contrasenaTemporal: null, usuarioExistente: true };
+  return { admin, contrasenaTemporal: null, usuarioExistente: false };
 }
 
 export async function activarAdmin(id, activo) {
@@ -379,6 +384,47 @@ export async function guardarConfiguracion(cambios) {
   if (!DEMO_MODE) return soporteApi.guardarConfig(cambios);
   mock.actualizarSettings(cambios);
   return cambios;
+}
+
+/** Registra en auditoría el acceso al panel (se llama una vez por sesión). */
+export async function registrarAccesoPanel() {
+  if (!DEMO_MODE) {
+    try {
+      await httpRequest({ url: ENDPOINTS.soporte.auditoriaAcceso, method: 'POST' });
+    } catch {
+      /* la auditoría no debe bloquear el panel */
+    }
+    return;
+  }
+  mock.registrarAuditoria('ADMIN', 'ACCESO_PANEL', 'Panel', null, null, null, 'Acceso al panel de administración');
+}
+
+/** Moderación de contenido: ocultar publicación o eliminar comentario. */
+export async function moderarContenido({ objetivo, id, accion, motivo }) {
+  if (!DEMO_MODE) {
+    return httpRequest({
+      url: ENDPOINTS.soporte.moderacion,
+      method: 'POST',
+      body: { objetivo, id, accion, motivo },
+    });
+  }
+  mock.registrarAuditoria(
+    'ADMIN',
+    accion === 'OCULTAR' ? 'OCULTAR_PUBLICACION' : 'ELIMINAR_COMENTARIO',
+    objetivo === 'PUBLICACION' ? 'Publicacion' : 'Comentario',
+    id,
+    null,
+    accion,
+    motivo,
+  );
+  return true;
+}
+
+export async function quitarAdmin(id) {
+  if (!DEMO_MODE) {
+    return httpRequest({ url: ENDPOINTS.soporte.admin(id), method: 'DELETE' });
+  }
+  return mock.eliminarAdmin(id);
 }
 
 export function registrarAuditoria() {

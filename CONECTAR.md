@@ -1,5 +1,16 @@
 # LO ÚNICO QUE NECESITO PARA CONECTARLO
 
+> **ESTADO: INTEGRACIÓN IMPLEMENTADA (backend aditivo + web + Flutter).**
+> Para activarla:
+> 1. Ejecutar `D:\eco_retos\Backend\Scripts\Soporte_IA.sql` en la BD **EcoRitos** (solo crea tablas nuevas).
+> 2. Reiniciar el backend (CORS y `/api/Soporte/*` ya están en el código).
+> 3. En Netlify: `VITE_DEMO_MODE=false` (y la URL del backend en `VITE_API_BASE_URL`).
+> 4. Subir los cambios de `soporte-web` a GitHub (Netlify redepliega) y compilar la app Flutter.
+> El detalle de endpoints y contratos está al final de este documento.
+
+El soporte web funciona hoy en modo demo (`VITE_DEMO_MODE=true`) y ya está preparado para el
+backend real. Esta es la lista exacta de lo que falta para que quede conectado de punta a punta.
+
 El soporte web está **funcionando hoy en modo demo** (`VITE_DEMO_MODE=true`, datos en
 localStorage) y ya está **preparado para el backend real**. Esta es la lista exacta de lo que
 falta para que quede conectado de punta a punta.

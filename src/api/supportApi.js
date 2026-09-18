@@ -59,6 +59,27 @@ export function normalizarNotificacion(n = {}) {
   };
 }
 
+/** Evidencia de reto (usuario + reto) al modelo que consume el panel. */
+export function normalizarEvidencia(e = {}) {
+  const url = e.evidencia ?? e.url ?? '';
+  const tipo = /\.(mp4|mov|webm|m4v)$/i.test(url) ? 'video' : 'imagen';
+  return {
+    id: e.id,
+    usuarioId: e.usuarioId,
+    usuario: e.usuario ?? e.usuarioNombre ?? '',
+    retoId: e.retoId,
+    reto: e.reto ?? e.retoTitulo ?? '',
+    evidencias: url ? [{ url, tipo, nombre: 'evidencia' }] : [],
+    tipo,
+    estado: e.estado ?? 'EN_REVISION',
+    motivoRechazo: e.motivoRechazo ?? null,
+    admin: e.admin ?? null,
+    puntosObtenidos: e.puntosObtenidos ?? 0,
+    fecha: e.fecha ?? new Date().toISOString(),
+    fechaCompletado: e.fechaCompletado ?? null,
+  };
+}
+
 /* ─── Casos (usuario) ───────────────────────────────────────────────────── */
 
 export const soporteApi = {
@@ -141,7 +162,7 @@ export const soporteApi = {
       Object.entries(filtros).filter(([, v]) => v !== undefined && v !== null && v !== ''),
     ).toString();
     const r = await httpRequest({ url: `${ENDPOINTS.soporte.evidencias}${qs ? `?${qs}` : ''}` });
-    return r.data ?? [];
+    return (r.data ?? []).map(normalizarEvidencia);
   },
 
   async auditoria() {
@@ -163,7 +184,7 @@ export const soporteApi = {
     const r = await httpRequest({
       url: ENDPOINTS.soporte.admin(id),
       method: 'PATCH',
-      body: { estado },
+      body: { activo: estado === 'ACTIVO' },
     });
     return r.data;
   },

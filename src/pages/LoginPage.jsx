@@ -15,7 +15,7 @@ function mensajeDeError(err) {
 }
 
 export default function LoginPage() {
-  const { acceder, accederDemo, accederConToken, verNotif } = useApp();
+  const { acceder, accederDemo, accederConToken, accederConCodigo, verNotif } = useApp();
   const [params] = useSearchParams();
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
@@ -24,19 +24,29 @@ export default function LoginPage() {
   const [cargando, setCargando] = useState(false);
   const autoHecho = useRef(false);
 
-  /* Auto-login: la app puede abrir la web con ?token=JWT */
+  /* SSO desde la app: ?codigo= (un solo uso, recomendado) o ?token=JWT (respaldo).
+     El parámetro se elimina de la URL inmediatamente para no dejarlo en el historial. */
   useEffect(() => {
+    const codigo = params.get('codigo');
     const token = params.get('token');
-    if (!token || autoHecho.current) return;
+    if ((!codigo && !token) || autoHecho.current) return;
     autoHecho.current = true;
+    try {
+      window.history.replaceState({}, '', window.location.pathname);
+    } catch {
+      /* entorno sin history */
+    }
     (async () => {
       setCargando(true);
       try {
-        const s = await accederConToken(token);
-        if (!s) {
-          setError('El enlace de acceso expiró o no es válido. Inicia sesión manualmente.');
+        if (codigo) {
+          const s = await accederConCodigo(codigo);
+          if (s) verNotif(`Bienvenido(a), ${s.usuario.nombreUsuario}`, 'success');
+          else setError('El código expiró o ya fue usado. Inicia sesión manualmente.');
         } else {
-          verNotif(`Bienvenido(a), ${s.usuario.nombreUsuario}`, 'success');
+          const s = await accederConToken(token);
+          if (s) verNotif(`Bienvenido(a), ${s.usuario.nombreUsuario}`, 'success');
+          else setError('El enlace de acceso expiró o no es válido. Inicia sesión manualmente.');
         }
       } catch (e) {
         setError(mensajeDeError(e));

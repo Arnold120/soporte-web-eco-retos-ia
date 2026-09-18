@@ -564,6 +564,35 @@ export function setAdminEstado(id, estado) {
   return a;
 }
 
+export function eliminarAdmin(id) {
+  const c = load();
+  const antes = c.admins.length;
+  c.admins = c.admins.filter((a) => a.id !== Number(id));
+  if (c.admins.length !== antes) {
+    save();
+    return true;
+  }
+  return false;
+}
+
+/** Registra una entrada de auditoría manual (usado por acciones de moderación demo). */
+export function registrarAuditoria(actor, accion, entidadTipo, entidadId, anterior, nuevo, motivo, actorTipo = 'ADMIN') {
+  const c = load();
+  c.audit.push({
+    id: nextId(),
+    actor,
+    actorTipo,
+    accion,
+    entidadTipo,
+    entidadId: entidadId ?? null,
+    estadoAnterior: anterior ?? null,
+    estadoNuevo: nuevo ?? null,
+    motivo: motivo ?? null,
+    fecha: iso(),
+  });
+  save();
+}
+
 export function agregarNotificacion({ usuarioId, titulo, mensaje, tipo, refId }) {
   const c = load();
   c.notifications.push(notif(usuarioId, titulo, mensaje, tipo, refId, false, 0));

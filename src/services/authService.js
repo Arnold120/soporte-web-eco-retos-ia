@@ -68,6 +68,37 @@ export async function loginConToken(token) {
   return sesion;
 }
 
+/**
+ * Canjea un código de un solo uso emitido por el backend (abierto desde Flutter
+ * con ?codigo=...). Devuelve una sesión real sin exponer el JWT en la URL.
+ */
+export async function loginConCodigo(codigo) {
+  if (!codigo) return null;
+  if (DEMO_MODE) {
+    // En demo no existe el canje: se ignora y se pedirá login manual.
+    return null;
+  }
+  const res = await httpRequest({
+    url: ENDPOINTS.soporte.sesionCanjear,
+    method: 'POST',
+    body: { codigo },
+  });
+  const datos = res.data ?? {};
+  const usuario = datos.usuario ?? {};
+  const sesion = {
+    token: datos.token ?? '',
+    expiraEn: datos.expiraEn ?? null,
+    usuario: {
+      id: usuario.usuarioId ?? usuario.id,
+      nombreUsuario: usuario.nombreUsuario,
+      correo: usuario.correo,
+      roles: rolesValidos(usuario.roles),
+    },
+  };
+  guardarSesion(sesion);
+  return sesion;
+}
+
 async function loginDemo(correo, contrasena) {
   await new Promise((r) => setTimeout(r, 600));
   const usuario = getUsuarios().find(
