@@ -1,12 +1,14 @@
 /**
  * Adaptador REAL del módulo de soporte.
  *
- * Se usa cuando VITE_DEMO_MODE=false. Los endpoints de /api/soporte/* aún no
- * existen en el backend actual; este archivo fija el contrato que deben cumplir
- * (ver CONECTAR.md) y normaliza las respuestas al modelo de la interfaz.
+ * Se usa cuando VITE_DEMO_MODE=false. Consume los endpoints reales de
+ * /api/soporte/* (backend .NET) y normaliza las respuestas al modelo de la
+ * interfaz: casos, chat, reportes, evidencias, administradores, auditoría,
+ * configuración y resumen de actualización automática.
  */
 import { ENDPOINTS } from './config.js';
 import { httpRequest } from './httpClient.js';
+import { resolverUrlArchivo, parsearEvidencia } from '../utils/mediaUrl.js';
 
 /* ─── Normalizadores (DTO backend -> modelo UI) ─────────────────────────── */
 
@@ -59,24 +61,83 @@ export function normalizarNotificacion(n = {}) {
   };
 }
 
+/**
+ * Reporte de contenido al modelo que consume el panel.
+ * Usa los nombres reales del backend (ReporteSoporteResponseDto) y resuelve
+ * las URLs del contenido reportado para poder previsualizarlo.
+ */
+export function normalizarReporte(r = {}) {
+  const multimedia = (r.contenidoMultimedia ?? []).map((a) => ({
+    ...a,
+    url: resolverUrlArchivo(a.url),
+    tipo: (a.tipo ?? 'imagen').toLowerCase(),
+  }));
+  return {
+    id: r.id,
+    tipo: r.tipo ?? 'DENUNCIA',
+    usuarioId: r.usuarioId,
+    usuarioNombre: r.usuarioNombre ?? '',
+    usuarioCorreo: r.usuarioCorreo ?? '',
+    descripcion: r.descripcion ?? '',
+    categoria: r.categoria ?? 'CONTENIDO',
+    prioridad: r.prioridad ?? 'NORMAL',
+    estado: r.estado ?? 'PENDIENTE',
+    publicacionId: r.publicacionId ?? null,
+    comentarioId: r.comentarioId ?? null,
+    motivo: r.motivo ?? '',
+    evidenciaUrl: resolverUrlArchivo(r.evidenciaUrl ?? ''),
+    accion: r.accion ?? null,
+    adminId: r.adminId ?? null,
+    adminNombre: r.adminNombre ?? null,
+    fecha: r.fecha ?? new Date().toISOString(),
+    contenidoTipo: r.contenidoTipo ?? null,
+    contenidoId: r.contenidoId ?? null,
+    contenidoTexto: r.contenidoTexto ?? '',
+    contenidoAutorId: r.contenidoAutorId ?? null,
+    contenidoAutorNombre: r.contenidoAutorNombre ?? '',
+    contenidoAutorCorreo: r.contenidoAutorCorreo ?? '',
+    contenidoEstado: r.contenidoEstado ?? null,
+    contenidoImagen: resolverUrlArchivo(r.contenidoImagen ?? ''),
+    contenidoMultimedia: multimedia,
+    enlace: r.enlace ?? null,
+    motivoResolucion: r.motivoResolucion ?? null,
+    fechaResolucion: r.fechaResolucion ?? null,
+    casoId: r.casoId ?? null,
+  };
+}
+
 /** Evidencia de reto (usuario + reto) al modelo que consume el panel. */
 export function normalizarEvidencia(e = {}) {
-  const url = e.evidencia ?? e.url ?? '';
-  const tipo = /\.(mp4|mov|webm|m4v)$/i.test(url) ? 'video' : 'imagen';
+  const cruda = e.evidencia ?? '';
+  const parseada = parsearEvidencia(cruda);
+  const adjuntosCrudos = Array.isArray(e.evidenciaAdjuntos) && e.evidenciaAdjuntos.length
+    ? e.evidenciaAdjuntos.map((a) => ({ ...a, url: resolverUrlArchivo(a.url), tipo: (a.tipo ?? 'imagen').toLowerCase() }))
+    : parseada.adjuntos;
+  const tieneVideo = adjuntosCrudos.some((a) => a.tipo === 'video');
+
   return {
     id: e.id,
     usuarioId: e.usuarioId,
     usuario: e.usuario ?? e.usuarioNombre ?? '',
+    usuarioCorreo: e.usuarioCorreo ?? '',
     retoId: e.retoId,
     reto: e.reto ?? e.retoTitulo ?? '',
-    evidencias: url ? [{ url, tipo, nombre: 'evidencia' }] : [],
-    tipo,
+    retoDescripcion: e.retoDescripcion ?? '',
+    retoInstrucciones: e.retoInstrucciones ?? '',
+    retoRequisitos: e.retoRequisitos ?? '',
+    retoTipoEvidencia: e.retoTipoEvidencia ?? '',
+    retoCantidadObjetivo: e.retoCantidadObjetivo ?? null,
+    evidenciaCruda: cruda,
+    texto: e.evidenciaTexto ?? parseada.texto,
+    evidencias: adjuntosCrudos,
+    tipo: tieneVideo && !adjuntosCrudos.some((a) => a.tipo === 'imagen') ? 'video' : 'imagen',
     estado: e.estado ?? 'EN_REVISION',
     motivoRechazo: e.motivoRechazo ?? null,
     admin: e.admin ?? null,
     puntosObtenidos: e.puntosObtenidos ?? 0,
     fecha: e.fecha ?? new Date().toISOString(),
     fechaCompletado: e.fechaCompletado ?? null,
+    evaluacionIA: e.evaluacionIA ?? null,
   };
 }
 
@@ -154,7 +215,17 @@ export const soporteApi = {
       Object.entries(filtros).filter(([, v]) => v !== undefined && v !== null && v !== ''),
     ).toString();
     const r = await httpRequest({ url: `${ENDPOINTS.soporte.reportes}${qs ? `?${qs}` : ''}` });
-    return r.data ?? [];
+    return (r.data ?? []).map(normalizarReporte);
+  },
+
+  async reporte(id) {
+    const r = await httpRequest({ url: ENDPOINTS.soporte.reporte(id) });
+    return normalizarReporte(r.data);
+  },
+
+  async analizarReporte(id) {
+    const r = await httpRequest({ url: ENDPOINTS.soporte.reporteAnalizar(id), method: 'POST' });
+    return r.data;
   },
 
   async evidencias(filtros = {}) {
@@ -163,6 +234,21 @@ export const soporteApi = {
     ).toString();
     const r = await httpRequest({ url: `${ENDPOINTS.soporte.evidencias}${qs ? `?${qs}` : ''}` });
     return (r.data ?? []).map(normalizarEvidencia);
+  },
+
+  async evidencia(id) {
+    const r = await httpRequest({ url: ENDPOINTS.soporte.evidencia(id) });
+    return normalizarEvidencia(r.data);
+  },
+
+  async analizarEvidencia(id) {
+    const r = await httpRequest({ url: ENDPOINTS.soporte.evidenciaAnalizar(id), method: 'POST' });
+    return r.data;
+  },
+
+  async resumenAdmin() {
+    const r = await httpRequest({ url: ENDPOINTS.soporte.adminResumen });
+    return r.data;
   },
 
   async auditoria() {

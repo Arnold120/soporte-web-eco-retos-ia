@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { useAsync } from '../../hooks/useAsync.js';
 import { usePaginacion } from '../../hooks/usePaginacion.js';
 import { auditoria } from '../../services/supportService.js';
 import { EmptyState, Pill, Cargando, ErrorBox } from '../../components/ui.jsx';
+import Icon from '../../components/Icons.jsx';
 import Pagination from '../../components/Pagination.jsx';
 import { hace, fmtFechaHora } from '../../utils/format.js';
 import { exportarCsv } from '../../utils/exportCsv.js';
@@ -69,9 +70,9 @@ export default function AdminAuditoria() {
           </p>
         </div>
         <div className="row">
-          <button className="btn btn-ghost btn-sm" onClick={recargar}>↻</button>
+          <button className="btn btn-ghost btn-sm" onClick={recargar} title="Actualizar ahora"><Icon name="refresh" size={16} /></button>
           <button className="btn btn-ghost btn-sm" onClick={exportar} disabled={filtrados.length === 0}>
-            ⬇ Exportar CSV
+            <Icon name="download" size={16} /> Exportar CSV
           </button>
         </div>
       </div>
@@ -106,7 +107,7 @@ export default function AdminAuditoria() {
         <div className="card">
           <div className="tbl-wrap">
             {pag.total === 0 ? (
-              <EmptyState icono="🧾" titulo="Sin registros" texto="No hay acciones con esos filtros." />
+              <EmptyState icono="receipt" titulo="Sin registros" texto="No hay acciones con esos filtros." />
             ) : (
               <table className="tbl">
                 <thead>

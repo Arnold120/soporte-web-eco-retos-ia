@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+﻿import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ensenarAdminDashboard, casosAdmin } from '../../services/supportService.js';
 import { useAsync } from '../../hooks/useAsync.js';
 import { StatCard, Pill, Cargando, ErrorBox } from '../../components/ui.jsx';
+import Icon from '../../components/Icons.jsx';
 import { BarChart } from '../../components/Chart.jsx';
 import { infoCaso, infoCategoria } from '../../utils/states.js';
 import { hace } from '../../utils/format.js';
@@ -18,6 +19,11 @@ export default function AdminDashboard() {
     },
     [],
   );
+
+  useEffect(() => {
+    document.addEventListener('er.ui:refresh', recargar);
+    return () => document.removeEventListener('er.ui:refresh', recargar);
+  }, [recargar]);
 
   const serie = useMemo(() => {
     if (!datos?.casos) return [];
@@ -59,18 +65,18 @@ export default function AdminDashboard() {
             Estado general del soporte asistido por IA.
           </p>
         </div>
-        <button className="btn btn-ghost btn-sm" onClick={recargar}>↻ Actualizar</button>
+        <button className="btn btn-ghost btn-sm" onClick={recargar}><Icon name="refresh" size={16} /> Actualizar</button>
       </div>
 
       <div className="grid-cards">
-        <StatCard icono="🎫" valor={d.casosNuevos} etiqueta="Nuevos / IA atendiendo" onClick={() => navigate('/admin/casos')} />
-        <StatCard icono="🚨" valor={d.escalados} etiqueta="Casos escalados" onClick={() => navigate('/admin/casos')} />
-        <StatCard icono="👨‍💼" valor={d.enAtencion} etiqueta="En atención por admin" onClick={() => navigate('/admin/casos')} />
-        <StatCard icono="⚠️" valor={d.urgencias} etiqueta="Prioridad urgente" onClick={() => navigate('/admin/casos')} />
-        <StatCard icono="🚩" valor={d.reportesPendientes} etiqueta="Reportes pendientes" onClick={() => navigate('/admin/reportes')} />
-        <StatCard icono="🗂️" valor={d.evidenciasPendientes} etiqueta="Evidencias de retos" onClick={() => navigate('/admin/evidencias')} />
-        <StatCard icono="🛡️" valor={d.adminsActivos} etiqueta="Administradores activos" onClick={() => navigate('/admin/administradores')} />
-        <StatCard icono="⏱️" valor={d.horasPromedioResolucion ?? 0} etiqueta="Horas promedio de resolución" />
+        <StatCard icono={<Icon name="ticket" size={20} />} valor={d.casosNuevos} etiqueta="Nuevos / IA atendiendo" onClick={() => navigate('/admin/casos')} />
+        <StatCard icono={<Icon name="alert" size={20} />} valor={d.escalados} etiqueta="Casos escalados" onClick={() => navigate('/admin/casos')} />
+        <StatCard icono={<Icon name="user" size={20} />} valor={d.enAtencion} etiqueta="En atención por admin" onClick={() => navigate('/admin/casos')} />
+        <StatCard icono={<Icon name="alert" size={20} />} valor={d.urgencias} etiqueta="Prioridad urgente" onClick={() => navigate('/admin/casos')} />
+        <StatCard icono={<Icon name="flag" size={20} />} valor={d.reportesPendientes} etiqueta="Reportes pendientes" onClick={() => navigate('/admin/reportes')} />
+        <StatCard icono={<Icon name="folder" size={20} />} valor={d.evidenciasPendientes} etiqueta="Evidencias de retos" onClick={() => navigate('/admin/evidencias')} />
+        <StatCard icono={<Icon name="shield" size={20} />} valor={d.adminsActivos} etiqueta="Administradores activos" onClick={() => navigate('/admin/administradores')} />
+        <StatCard icono={<Icon name="clock" size={20} />} valor={d.horasPromedioResolucion ?? 0} etiqueta="Horas promedio de resolución" />
       </div>
 
       <div className="detail-grid">

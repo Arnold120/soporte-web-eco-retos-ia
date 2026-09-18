@@ -13,9 +13,11 @@ import { subirAdjunto } from '../../services/archivosService.js';
 import { DEMO_MODE } from '../../api/config.js';
 import { MessageBubble, TypingIndicator } from '../../components/ChatParts.jsx';
 import { Avatar, Pill, Cargando, ErrorBox } from '../../components/ui.jsx';
+import Icon from '../../components/Icons.jsx';
 import ThemeToggle from '../../components/ThemeToggle.jsx';
 import { infoCaso, TIPO_REMITENTE } from '../../utils/states.js';
 import { fmtFecha, fmtFechaHora } from '../../utils/format.js';
+import { resolverUrlArchivo } from '../../utils/mediaUrl.js';
 
 export default function ChatCasoPage() {
   const { sesion, salir, verNotif } = useApp();
@@ -140,7 +142,7 @@ export default function ChatCasoPage() {
       <aside className={`chat-side ${menuAbierto ? 'abierta' : ''}`}>
         <div className="chat-side-head">
           <div className="row" style={{ gap: 8 }}>
-            <span className="logo-badge logo-side">☘</span>
+            <span className="logo-badge logo-side"><Icon name="leaf" size={18} /></span>
             <b>Mis casos</b>
           </div>
           <button className="btn btn-ghost btn-sm" onClick={() => navigate('/soporte')}>
@@ -182,7 +184,7 @@ export default function ChatCasoPage() {
       <main className="chat-main">
         <div className="topbar topbar-chat">
           <button className="menu-btn btn btn-ghost btn-sm" onClick={() => setMenuAbierto((v) => !v)} aria-label="Abrir conversaciones">
-            ☰
+            <Icon name="menu" size={18} />
           </button>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div className="row" style={{ gap: 8 }}>
@@ -203,12 +205,12 @@ export default function ChatCasoPage() {
 
         {caso.motivoEscalamiento && !caso.resolucion && (
           <div className="banner-escalado">
-            🚨 Este caso fue escalado a un administrador humano. Te responderán por aquí.
+            <Icon name="alert" size={16} /> Este caso fue escalado a un administrador humano. Te responderán por aquí.
           </div>
         )}
         {caso.resolucion && (
           <div className="banner-resuelto">
-            ✅ Solución: {caso.resolucion}
+            <Icon name="check" size={16} /> Solución: {caso.resolucion}
           </div>
         )}
 
@@ -243,9 +245,9 @@ export default function ChatCasoPage() {
               {adjuntos.map((a, i) => (
                 <span key={i} className="attach-chip">
                   {a.tipo === 'imagen' && (
-                    <img src={a.url} alt="" style={{ width: 22, height: 22, borderRadius: 4, objectFit: 'cover' }} />
+                    <img src={resolverUrlArchivo(a.url)} alt="" style={{ width: 22, height: 22, borderRadius: 4, objectFit: 'cover' }} />
                   )}
-                  {a.tipo === 'video' ? '🎬 ' : ''}
+                  {a.tipo === 'video' ? <Icon name="video" size={14} /> : null}
                   {a.nombre}
                   <button
                     type="button"
@@ -260,7 +262,7 @@ export default function ChatCasoPage() {
             </div>
           )}
           <label className="attach-btn" title="Adjuntar imagen o video">
-            {subiendo ? '⏳' : '📎'}
+            {subiendo ? <span className="small">Subiendo…</span> : <Icon name="paperclip" size={18} />}
             <input
               ref={fileRef}
               type="file"
@@ -284,7 +286,7 @@ export default function ChatCasoPage() {
             }}
           />
           <button className="btn btn-primary btn-icon" title="Enviar" disabled={escribiendo || subiendo}>
-            ➤
+            <Icon name="send" size={16} />
           </button>
         </form>
       </main>

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useApp } from '../../store/AppContext.jsx';
 import { useAsync } from '../../hooks/useAsync.js';
 import { adminsLista, crearAdmin, activarAdmin, quitarAdmin } from '../../services/supportService.js';
 import { DEMO_MODE } from '../../api/config.js';
 import { Avatar, Pill, Modal, EmptyState, Cargando, ErrorBox } from '../../components/ui.jsx';
+import Icon from '../../components/Icons.jsx';
 import { fmtFecha } from '../../utils/format.js';
 
 export default function AdminAdmins() {
@@ -98,7 +99,7 @@ export default function AdminAdmins() {
             Usuarios reales de Eco-Retos con rol <b>ADMIN</b> (fuente: backend y base de datos).
           </p>
         </div>
-        <button className="btn btn-primary" onClick={() => setModal(true)}>+ Nuevo administrador</button>
+        <button className="btn btn-primary" onClick={() => setModal(true)}><Icon name="plus" size={16} /> Nuevo administrador</button>
       </div>
 
       <div className="card card-pad">
@@ -115,7 +116,7 @@ export default function AdminAdmins() {
         <div className="card">
           <div className="tbl-wrap">
             {(datos ?? []).length === 0 ? (
-              <EmptyState icono="🛡️" titulo="Sin administradores" />
+              <EmptyState icono="shield" titulo="Sin administradores" />
             ) : (
               <table className="tbl">
                 <thead>

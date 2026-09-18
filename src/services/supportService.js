@@ -35,7 +35,7 @@ export async function mensajesDe(casoId) {
   return mock.getMensajes(casoId);
 }
 
-export async function iniciarCaso(usuario, { titulo, descripcion, categoria }) {
+export async function iniciarCaso(usuario, { titulo, descripcion, categoria, terminosVersion }) {
   if (!DEMO_MODE) {
     const caso = await soporteApi.crearCaso({
       usuarioId: usuario.id,
@@ -43,6 +43,7 @@ export async function iniciarCaso(usuario, { titulo, descripcion, categoria }) {
       descripcion,
       categoria,
       consentimiento: true,
+      terminosVersion,
     });
     // El backend orquesta la primera respuesta de la IA; aquí se cargan los
     // mensajes para que el chat los muestre al abrir.
@@ -182,13 +183,10 @@ export async function casosAdmin(filtros = {}) {
 }
 
 export async function ensenarAdminDashboard() {
-  if (!DEMO_MODE) {
-    try {
-      return await soporteApi.dashboard();
-    } catch {
-      /* si el endpoint no existe aún, se calcula localmente con los casos */
-    }
-  }
+  // En modo real NUNCA se usa el mock local: si el backend falla, la UI
+  // muestra el error y el sondeo reintenta.
+  if (!DEMO_MODE) return soporteApi.dashboard();
+
   const casos = mock.getCasos();
   const reportes = mock.getReportes();
   const act = (estados) => casos.filter((c) => estados.includes(c.estado)).length;
@@ -300,31 +298,87 @@ export async function reportesAdmin(filtros = {}) {
   return mock.getReportes(filtros);
 }
 
-export async function resolverReporteAdmin(id, accion, adminNombre) {
-  if (!DEMO_MODE) {
-    return httpRequest({
-      url: ENDPOINTS.soporte.reporte(id),
-      method: 'PATCH',
-      body: { accion, estado: ESTADO_REPORTE.RESUELTA },
-    });
-  }
-  return mock.resolverReporte(id, { accion, adminNombre });
+export async function obtenerReporteAdmin(id) {
+  if (!DEMO_MODE) return soporteApi.reporte(id);
+  return (mock.getReportes() ?? []).find((r) => r.id === Number(id)) ?? null;
 }
 
-export async function descartarReporteAdmin(id, adminNombre) {
+export async function analizarReporteAdmin(id) {
+  if (!DEMO_MODE) return soporteApi.analizarReporte(id);
+  const reporte = (mock.getReportes() ?? []).find((r) => r.id === Number(id)) ?? {};
+  const texto = `${reporte.motivo ?? ''} ${reporte.descripcion ?? ''}`.toLowerCase();
+  const adultos = /\+18|18\+|adultos|pornograf|desnud|acoso|violencia|amenaza/.test(texto);
+  return {
+    recomendacion: adultos ? 'OCULTAR_ADVERTIR' : 'REVISAR',
+    posibleContenidoAdultos: adultos,
+    confianza: adultos ? 65 : 35,
+    requiereRevisionHumana: true,
+    motivo: adultos
+      ? 'Indicios de contenido no permitido; se recomienda ocultar y advertir conservando el registro.'
+      : 'No hay elementos suficientes para confirmar una infracción.',
+    observaciones: 'Vista previa en modo demo.',
+    categoriaSugerida: 'CONTENIDO',
+    proveedor: 'reglas',
+    fecha: new Date().toISOString(),
+  };
+}
+
+export async function resolverReporteAdmin(id, accion, adminNombre, motivo = '') {
   if (!DEMO_MODE) {
     return httpRequest({
       url: ENDPOINTS.soporte.reporte(id),
       method: 'PATCH',
-      body: { estado: ESTADO_REPORTE.DESCARTADA },
+      body: { accion, estado: ESTADO_REPORTE.RESUELTA, motivo },
     });
   }
-  return mock.resolverReporte(id, { adminNombre, estado: ESTADO_REPORTE.DESCARTADA });
+  return mock.resolverReporte(id, { accion, adminNombre, motivo });
+}
+
+export async function descartarReporteAdmin(id, adminNombre, motivo = '') {
+  if (!DEMO_MODE) {
+    return httpRequest({
+      url: ENDPOINTS.soporte.reporte(id),
+      method: 'PATCH',
+      body: { estado: ESTADO_REPORTE.DESCARTADA, motivo },
+    });
+  }
+  return mock.resolverReporte(id, { adminNombre, estado: ESTADO_REPORTE.DESCARTADA, motivo });
 }
 
 export async function evidenciasAdmin(filtros = {}) {
   if (!DEMO_MODE) return soporteApi.evidencias(filtros);
   return mock.getEvidencias(filtros);
+}
+
+export async function obtenerEvidenciaAdmin(id) {
+  if (!DEMO_MODE) return soporteApi.evidencia(id);
+  return (mock.getEvidencias() ?? []).find((e) => e.id === Number(id)) ?? null;
+}
+
+export async function analizarEvidenciaAdmin(id) {
+  if (!DEMO_MODE) return soporteApi.analizarEvidencia(id);
+  const evidencia = await obtenerEvidenciaAdmin(id);
+  if (!evidencia) return null;
+  const adjuntos = evidencia.evidencias ?? [];
+  const texto = (evidencia.texto ?? '').trim();
+  const tipo = (evidencia.retoTipoEvidencia ?? '').toUpperCase();
+  const pideImagen = ['FOTO', 'GALERIA', 'VIDEO'].includes(tipo);
+  const pideTexto = ['TEXTO', 'RESPUESTA'].includes(tipo);
+  const faltantes = [];
+  if (pideImagen && adjuntos.length === 0) faltantes.push('Fotografía de la evidencia');
+  if (pideTexto && texto.length === 0) faltantes.push('Texto de la evidencia');
+  return {
+    cumple: faltantes.length === 0,
+    confianza: faltantes.length === 0 ? 40 : 85,
+    requiereRevisionHumana: true,
+    motivo: faltantes.length === 0
+      ? 'La evidencia contiene los elementos solicitados por el reto.'
+      : 'Faltan elementos obligatorios para validar la evidencia.',
+    elementosFaltantes: faltantes,
+    observaciones: 'Vista previa en modo demo.',
+    proveedor: 'reglas',
+    fecha: new Date().toISOString(),
+  };
 }
 
 export async function decidirEvidencia(id, resultado, motivoRechazo = '') {
@@ -399,18 +453,18 @@ export async function registrarAccesoPanel() {
   mock.registrarAuditoria('ADMIN', 'ACCESO_PANEL', 'Panel', null, null, null, 'Acceso al panel de administración');
 }
 
-/** Moderación de contenido: ocultar publicación o eliminar comentario. */
-export async function moderarContenido({ objetivo, id, accion, motivo }) {
+/** Moderación de contenido: ocultar publicación o comentario (sin eliminarlo). */
+export async function moderarContenido({ objetivo, id, accion, motivo, reporteId = null }) {
   if (!DEMO_MODE) {
     return httpRequest({
       url: ENDPOINTS.soporte.moderacion,
       method: 'POST',
-      body: { objetivo, id, accion, motivo },
+      body: { objetivo, id, accion, motivo, reporteId },
     });
   }
   mock.registrarAuditoria(
     'ADMIN',
-    accion === 'OCULTAR' ? 'OCULTAR_PUBLICACION' : 'ELIMINAR_COMENTARIO',
+    accion === 'OCULTAR' ? 'OCULTAR_PUBLICACION' : 'OCULTAR_COMENTARIO',
     objetivo === 'PUBLICACION' ? 'Publicacion' : 'Comentario',
     id,
     null,
@@ -418,6 +472,33 @@ export async function moderarContenido({ objetivo, id, accion, motivo }) {
     motivo,
   );
   return true;
+}
+
+/** Resumen ligero para la actualización automática del panel. */
+export async function resumenAdmin() {
+  if (!DEMO_MODE) return soporteApi.resumenAdmin();
+  const casos = mock.getCasos();
+  const reportes = mock.getReportes();
+  const evidencias = mock.getEvidencias({ estado: 'EN_REVISION' });
+  const ultimo = (lista) => lista.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0);
+  const resumen = {
+    casosTotales: casos.length,
+    casosNuevos: casos.filter((c) => ['NUEVO', 'IA_ATENDIENDO'].includes(c.estado)).length,
+    escalados: casos.filter((c) => c.estado === 'ESCALADO').length,
+    enAtencion: casos.filter((c) => ['ASIGNADO', 'EN_REVISION'].includes(c.estado)).length,
+    urgencias: casos.filter((c) => c.prioridad === 'URGENTE' && c.estado !== 'CERRADO').length,
+    reportesPendientes: reportes.filter((r) => ['PENDIENTE', 'EN_REVISION'].includes(r.estado)).length,
+    evidenciasPendientes: evidencias.length,
+    ultimoCasoId: ultimo(casos),
+    ultimoReporteId: ultimo(reportes),
+    ultimaEvidenciaId: ultimo(evidencias),
+  };
+  resumen.firma = [
+    resumen.casosTotales, resumen.casosNuevos, resumen.escalados, resumen.enAtencion,
+    resumen.urgencias, resumen.reportesPendientes, resumen.evidenciasPendientes,
+    resumen.ultimoCasoId, resumen.ultimoReporteId, resumen.ultimaEvidenciaId,
+  ].join('|');
+  return resumen;
 }
 
 export async function quitarAdmin(id) {

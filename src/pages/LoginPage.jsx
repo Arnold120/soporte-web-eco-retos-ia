@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useApp } from '../store/AppContext.jsx';
 import { DEMO_MODE, API_BASE_URL, SUPPORT_NAME } from '../api/config.js';
 import ThemeToggle from '../components/ThemeToggle.jsx';
+import Icon from '../components/Icons.jsx';
 
 function mensajeDeError(err) {
   if (!err) return 'No se pudo iniciar sesión.';
@@ -91,7 +92,7 @@ export default function LoginPage() {
       <div className="auth-brand">
         <div>
           <div className="row" style={{ gap: 10 }}>
-            <span className="logo-badge logo-login">☘</span>
+            <span className="logo-badge logo-login"><Icon name="leaf" size={20} /></span>
             <div>
               <b>Eco-Retos</b>
               <div className="small" style={{ color: '#cde9cd' }}>{SUPPORT_NAME}</div>
@@ -103,9 +104,9 @@ export default function LoginPage() {
             con un administrador cuando sea necesario.
           </p>
           <ul className="auth-features">
-            <li>🤖 Respuestas inmediatas de la IA</li>
-            <li>📎 Envía imágenes y videos como evidencia</li>
-            <li>🛡️ Escalamiento a un administrador humano</li>
+            <li><Icon name="cpu" size={15} /> Respuestas inmediatas de la IA</li>
+            <li><Icon name="paperclip" size={15} /> Envía imágenes y videos como evidencia</li>
+            <li><Icon name="shield" size={15} /> Escalamiento a un administrador humano</li>
           </ul>
         </div>
         <div className="small" style={{ color: '#cde9cd' }}>
@@ -125,7 +126,7 @@ export default function LoginPage() {
 
           {error && (
             <div className="alert-error" role="alert">
-              <span>⚠️</span>
+              <span><Icon name="alert" size={18} /></span>
               <span>{error}</span>
             </div>
           )}
@@ -161,7 +162,7 @@ export default function LoginPage() {
                   onClick={() => setVerPass((v) => !v)}
                   aria-label={verPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
-                  {verPass ? '🙈' : '👁️'}
+                  {verPass ? <Icon name="lock" size={16} /> : <Icon name="eye" size={16} />}
                 </button>
               </div>
             </div>
@@ -175,10 +176,10 @@ export default function LoginPage() {
           </div>
           <div className="stack">
             <button className="btn btn-ghost" onClick={() => demo('ESTUDIANTE')} disabled={cargando}>
-              👤 Estudiante demo (maria.lopez)
+              <Icon name="user" size={15} /> Estudiante demo (maria.lopez)
             </button>
             <button className="btn btn-ghost" onClick={() => demo('ADMIN')} disabled={cargando}>
-              🛡️ Administrador demo (admin)
+              <Icon name="shield" size={15} /> Administrador demo (admin)
             </button>
           </div>
           {DEMO_MODE ? (

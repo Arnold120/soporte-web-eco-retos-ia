@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../store/AppContext.jsx';
 import { useAsync } from '../../hooks/useAsync.js';
 import { casosMios } from '../../services/supportService.js';
 import { Pill, EmptyState, Cargando, ErrorBox } from '../../components/ui.jsx';
+import Icon from '../../components/Icons.jsx';
 import NotifBell from '../../components/NotifBell.jsx';
 import ThemeToggle from '../../components/ThemeToggle.jsx';
 import { infoCaso, ESTADO_CASO } from '../../utils/states.js';
@@ -47,7 +48,7 @@ export default function MisCasosPage() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <header className="topbar">
         <div className="row" style={{ gap: 10 }}>
-          <span className="logo-badge logo-top">☘</span>
+          <span className="logo-badge logo-top"><Icon name="leaf" size={20} /></span>
           <div>
             <b>Centro de soporte</b>
             <div className="small muted">Eco-Retos</div>
@@ -100,7 +101,7 @@ export default function MisCasosPage() {
         {!cargando && !error && casos.length === 0 && (
           <div className="card card-pad">
             <EmptyState
-              icono="💬"
+              icono="chat"
               titulo="Sin conversaciones"
               texto={q || filtro ? 'No hay coincidencias con el filtro.' : 'Inicia tu primera conversación de soporte.'}
             />

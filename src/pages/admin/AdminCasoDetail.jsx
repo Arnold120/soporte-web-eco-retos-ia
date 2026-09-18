@@ -20,6 +20,7 @@ import {
 import { subirAdjunto } from '../../services/archivosService.js';
 import { MessageBubble, TypingIndicator } from '../../components/ChatParts.jsx';
 import { Pill, Modal, Cargando, ErrorBox } from '../../components/ui.jsx';
+import Icon from '../../components/Icons.jsx';
 import {
   infoCaso,
   infoCategoria,
@@ -34,7 +35,7 @@ import { fmtFechaHora, hace } from '../../utils/format.js';
 export default function AdminCasoDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { confirmar, verNotif } = useApp();
+  const { sesion, confirmar, verNotif } = useApp();
 
   const { datos, cargando, error, recargar } = useAsync(
     async () => {
@@ -131,7 +132,7 @@ export default function AdminCasoDetail() {
   return (
     <div className="stack">
       <button className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => navigate('/admin/casos')}>
-        ← Volver a casos
+        <Icon name="arrowLeft" size={16} /> Volver a casos
       </button>
 
       <div className="detail-grid">
@@ -183,7 +184,7 @@ export default function AdminCasoDetail() {
               </div>
             )}
             <label className="attach-btn" title="Adjuntar archivo">
-              📎
+              <Icon name="paperclip" size={18} />
               <input ref={fileRef} type="file" accept="image/*,video/*" hidden onChange={adjuntar} />
             </label>
             <textarea
@@ -199,7 +200,9 @@ export default function AdminCasoDetail() {
               }}
               disabled={cerrado}
             />
-            <button className="btn btn-primary btn-icon" disabled={enviando || cerrado}>➤</button>
+            <button className="btn btn-primary btn-icon" disabled={enviando || cerrado} title="Enviar respuesta">
+              <Icon name="send" size={16} />
+            </button>
           </form>
         </div>
 
@@ -222,7 +225,7 @@ export default function AdminCasoDetail() {
               <div className="kbox"><div className="k">Prioridad</div><div className="v">{infoPrioridad(caso.prioridad).etiqueta}</div></div>
               <div className="kbox"><div className="k">Categoría</div><div className="v">{infoCategoria(caso.categoria).etiqueta}</div></div>
               <div className="kbox"><div className="k">Creado</div><div className="v">{hace(caso.fechaCreacion)}</div></div>
-              <div className="kbox"><div className="k">Consentimiento</div><div className="v">✔ Aceptado</div></div>
+              <div className="kbox"><div className="k">Consentimiento</div><div className="v">Aceptado</div></div>
               <div className="kbox"><div className="k">Cierre</div><div className="v">{caso.fechaCierre ? hace(caso.fechaCierre) : '—'}</div></div>
             </div>
           </div>
@@ -364,7 +367,10 @@ export default function AdminCasoDetail() {
               className="btn btn-primary"
               onClick={() => {
                 setModalResolver(false);
-                ejecutar(() => resolverCaso(caso.id, resolucion.trim(), 'Admin'), 'Caso resuelto.');
+                ejecutar(
+                  () => resolverCaso(caso.id, resolucion.trim(), sesion?.usuario?.nombreUsuario ?? 'Admin'),
+                  'Caso resuelto.',
+                );
               }}
             >
               Resolver caso

@@ -1,4 +1,5 @@
 import { useApp } from '../store/AppContext.jsx';
+import Icon from './Icons.jsx';
 
 export default function ThemeToggle({ className = '' }) {
   const { tema, alternarTema } = useApp();
@@ -11,7 +12,7 @@ export default function ThemeToggle({ className = '' }) {
       title={oscuro ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
       aria-label="Cambiar tema"
     >
-      {oscuro ? '☀️' : '🌙'}
+      <Icon name={oscuro ? 'sun' : 'moon'} size={17} />
     </button>
   );
 }

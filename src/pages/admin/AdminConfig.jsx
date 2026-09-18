@@ -5,6 +5,7 @@ import { configuracionSoporte, guardarConfiguracion } from '../../services/suppo
 import { resetDb } from '../../api/mockDb.js';
 import { DEMO_MODE, API_BASE_URL, IS_NGROK, AUTH_BASE } from '../../api/config.js';
 import { Cargando, ErrorBox } from '../../components/ui.jsx';
+import Icon from '../../components/Icons.jsx';
 
 export default function AdminConfig() {
   const { sesion, verNotif, confirmar } = useApp();
@@ -16,15 +17,16 @@ export default function AdminConfig() {
   const [probando, setProbando] = useState(false);
 
   const cfg = datos ?? {};
-  const valorTerminos = terminos ?? cfg.terminosSoporte ?? '';
-  const valorAdvertencia = advertencia ?? cfg.advertenciaContenido ?? '';
+  const valorTerminos = terminos ?? cfg.TerminosTexto ?? cfg.terminosTexto ?? cfg.terminosSoporte ?? '';
+  const valorAdvertencia = advertencia ?? cfg.AdvertenciaContenido ?? cfg.advertenciaContenido ?? '';
 
   const guardar = async () => {
     setGuardando(true);
     try {
       await guardarConfiguracion({
-        terminosSoporte: valorTerminos.trim(),
-        advertenciaContenido: valorAdvertencia.trim(),
+        TerminosTexto: valorTerminos.trim(),
+        AdvertenciaContenido: valorAdvertencia.trim(),
+        TerminosVersion: cfg.TerminosVersion ?? cfg.terminosVersion ?? 'v1',
       });
       verNotif('Configuración guardada.', 'success');
       recargar();
@@ -140,11 +142,11 @@ export default function AdminConfig() {
             </div>
 
             <button className="btn btn-ghost mt" onClick={probarConexion} disabled={probando}>
-              {probando ? 'Probando…' : '🔌 Probar conexión con el backend'}
+              <Icon name="plug" size={16} /> {probando ? ' Probando…' : ' Probar conexión con el backend'}
             </button>
             {prueba && (
-              <p className={`small mt ${prueba.ok ? 'texto-ok' : 'texto-error'}`} style={{ marginBottom: 0 }}>
-                {prueba.ok ? '✅ ' : '⛔ '}
+              <p className={`small mt row ${prueba.ok ? 'texto-ok' : 'texto-error'}`} style={{ marginBottom: 0, gap: 6, alignItems: 'center' }}>
+                <Icon name={prueba.ok ? 'check' : 'alert'} size={15} />
                 {prueba.texto}
               </p>
             )}
@@ -153,9 +155,9 @@ export default function AdminConfig() {
           <div className="card card-pad">
             <b>Modo demostración</b>
             <p className="muted small" style={{ lineHeight: 1.6 }}>
-              Los datos demo viven en el navegador (localStorage). Al activar{' '}
-              <code>VITE_DEMO_MODE=false</code> la app usará el backend real: login, notificaciones e
-              imágenes ya existen; los endpoints de soporte se detallan en <code>CONECTAR.md</code>.
+              En producción la app funciona con <code>VITE_DEMO_MODE=false</code> y todos los datos
+              (casos, reportes, evidencias, notificaciones y administradores) provienen del backend real.
+              Los datos demo solo viven en el navegador y no afectan a la base de datos.
             </p>
             <button className="btn btn-danger-ghost" onClick={reiniciar}>Restablecer datos demo</button>
           </div>

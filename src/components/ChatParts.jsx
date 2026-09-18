@@ -1,55 +1,82 @@
 import { useState } from 'react';
 import { Avatar } from './ui.jsx';
+import Icon from './Icons.jsx';
 import Markdown from './Markdown.jsx';
 import { fmtFecha } from '../utils/format.js';
 import { TIPO_REMITENTE } from '../utils/states.js';
+import { resolverUrlArchivo, esVideoUrl } from '../utils/mediaUrl.js';
 
 function esVideo(a) {
-  return a.tipo === 'video' || /\.(mp4|mov|webm|m4v)$/i.test(a.url || '');
+  return a.tipo === 'video' || esVideoUrl(a.url);
 }
 
 function Adjuntos({ adjuntos = [] }) {
   const [ver, setVer] = useState(null);
+  const [rotos, setRotos] = useState({});
   if (!adjuntos?.length) return null;
+
+  const actual = ver !== null ? adjuntos[ver] : null;
+  const urlActual = actual ? resolverUrlArchivo(actual.url) : '';
+
   return (
     <div className="attach-preview">
       {adjuntos.map((a, i) => (
         <div
-          className="attach-thumb preview-lightbox"
+          className={`attach-thumb preview-lightbox ${rotos[i] ? 'roto' : ''}`}
           key={i}
           onClick={() => setVer(i)}
           title={a.nombre || 'Evidencia'}
         >
           {esVideo(a) ? (
-            <span>▶ {a.nombre || 'video'}</span>
-          ) : a.tipo === 'imagen' || a.url?.startsWith('data:image') ? (
-            <img src={a.url} alt={a.nombre || ''} />
+            <span className="media-thumb-video"><Icon name="play" size={18} /></span>
+          ) : a.tipo === 'imagen' || String(a.url).startsWith('data:image') ? (
+            rotos[i] ? (
+              <span className="media-error-mini"><Icon name="image" size={16} /></span>
+            ) : (
+              <img src={resolverUrlArchivo(a.url)} alt={a.nombre || ''} onError={() => setRotos((r) => ({ ...r, [i]: true }))} />
+            )
           ) : (
-            <span>📄 {a.nombre || 'archivo'}</span>
+            <span><Icon name="paperclip" size={16} /> {a.nombre || 'archivo'}</span>
           )}
         </div>
       ))}
-      {ver !== null && (
+
+      {actual && (
         <div className="modal-overlay" onClick={() => setVer(null)}>
           <div className="modal" style={{ maxWidth: 760 }} onClick={(e) => e.stopPropagation()}>
-            {esVideo(adjuntos[ver]) ? (
+            {esVideo(actual) ? (
               <video
-                src={adjuntos[ver].url}
+                key={urlActual}
+                src={urlActual}
                 controls
                 autoPlay
                 style={{ width: '100%', maxHeight: '72vh', borderRadius: 12, background: '#000' }}
               />
+            ) : rotos[ver] ? (
+              <div className="media-error">
+                <Icon name="image" size={30} />
+                <b>El archivo no está disponible</b>
+                <span className="small muted">La imagen no pudo cargarse desde el servidor.</span>
+                <a className="btn btn-ghost btn-sm" href={urlActual} target="_blank" rel="noopener noreferrer">
+                  Abrir enlace directo
+                </a>
+              </div>
             ) : (
               <img
-                src={adjuntos[ver].url}
-                alt={adjuntos[ver].nombre || ''}
+                key={urlActual}
+                src={urlActual}
+                alt={actual.nombre || ''}
                 style={{ width: '100%', maxHeight: '72vh', objectFit: 'contain', borderRadius: 12 }}
+                onError={() => setRotos((r) => ({ ...r, [ver]: true }))}
               />
             )}
             <div className="modal-actions">
-              <span className="muted small">
-                {adjuntos[ver].nombre} · {adjuntos[ver].tipo}
+              <span className="muted small ellipsis">
+                {actual.nombre} · {actual.tipo}
               </span>
+              <a className="btn btn-ghost btn-sm" href={urlActual} target="_blank" rel="noopener noreferrer">
+                Tamaño completo
+              </a>
               <button className="btn btn-primary btn-sm" onClick={() => setVer(null)}>
                 Cerrar
               </button>

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Motor de IA (MODO DEMO).
  *
  * Motor de reglas que simula el razonamiento de la IA real: clasifica,
@@ -117,11 +117,11 @@ const respuestasResueltas = {
 };
 
 const sugerenciasPorCategoria = {
-  [CATEGORIA_CASO.RETO]: ['📎 Adjuntar captura', 'No me deja enviar la evidencia', 'El reto no me aparece'],
-  [CATEGORIA_CASO.CONTENIDO]: ['📎 Adjuntar captura', 'Es contenido +18', 'Es acoso o violencia'],
+  [CATEGORIA_CASO.RETO]: ['Adjuntar captura', 'No me deja enviar la evidencia', 'El reto no me aparece'],
+  [CATEGORIA_CASO.CONTENIDO]: ['Adjuntar captura', 'Es contenido +18', 'Es acoso o violencia'],
   [CATEGORIA_CASO.MONEDERO]: ['Completé el reto', 'Sigue en revisión', 'No me llegaron las monedas'],
   [CATEGORIA_CASO.CUENTA]: ['Quiero cambiar mi correo', 'Olvidé mi contraseña', 'No puedo iniciar sesión'],
-  [CATEGORIA_CASO.OTRO]: ['📎 Adjuntar captura', 'La app se cierra', 'Es un error de la app'],
+  [CATEGORIA_CASO.OTRO]: ['Adjuntar captura', 'La app se cierra', 'Es un error de la app'],
 };
 
 export function IA_NOMBRE() {
@@ -160,7 +160,7 @@ export async function analizar(input) {
   if (confirmacion && !grave) {
     return {
       mensajeIA:
-        '¡Qué bueno saberlo! 🌱 Marco el caso como resuelto. Si el problema vuelve a aparecer, puedes abrir una nueva conversación y te ayudamos de inmediato.',
+        '¡Qué bueno saberlo! Marco el caso como resuelto. Si el problema vuelve a aparecer, puedes abrir una nueva conversación y te ayudamos de inmediato.',
       estado: ESTADO_CASO.RESUELTO_POR_IA,
       categoria,
       prioridad: prioridadDe(categoria, false),
@@ -228,7 +228,7 @@ export async function analizar(input) {
     if (adjuntos.length || mencionaEvidencia) {
       return {
         mensajeIA:
-          'Recibí tu información ✔️ Voy a revisarla. Si el problema no puede resolverse automáticamente, lo escalaré a un administrador con toda la evidencia adjunta.',
+          'Recibí tu información. Voy a revisarla. Si el problema no puede resolverse automáticamente, lo escalaré a un administrador con toda la evidencia adjunta.',
         estado: ESTADO_CASO.EN_REVISION,
         categoria,
         prioridad: prioridadDe(categoria, false),
@@ -247,7 +247,7 @@ export async function analizar(input) {
         crearReporte: false,
         escalar: false,
         resolver: true,
-        sugerencias: ['Sí, gracias ✔️', 'No, sigue igual'],
+        sugerencias: ['Sí, gracias', 'No, sigue igual'],
       };
     }
     return {

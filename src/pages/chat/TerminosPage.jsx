@@ -4,6 +4,7 @@ import { useApp } from '../../store/AppContext.jsx';
 import { useAsync } from '../../hooks/useAsync.js';
 import { iniciarCaso, configuracionSoporte } from '../../services/supportService.js';
 import { Cargando } from '../../components/ui.jsx';
+import Icon from '../../components/Icons.jsx';
 
 export default function TerminosPage() {
   const { sesion, verNotif } = useApp();
@@ -14,11 +15,14 @@ export default function TerminosPage() {
   const [cargando, setCargando] = useState(false);
   const { datos: config, cargando: cargandoConfig } = useAsync(() => configuracionSoporte(), []);
 
+  const versionTerminos = config?.TerminosVersion ?? config?.terminosVersion ?? 'v1';
+  const textoTerminos = config?.TerminosTexto ?? config?.terminosTexto ?? config?.terminosSoporte ?? '';
+
   const continuar = async () => {
     if (!acepta || !borrador) return;
     setCargando(true);
     try {
-      const caso = await iniciarCaso(sesion.usuario, borrador);
+      const caso = await iniciarCaso(sesion.usuario, { ...borrador, terminosVersion: versionTerminos });
       verNotif('Conversación iniciada. La IA te atenderá en un momento.', 'success');
       navigate(`/soporte/casos/${caso.id}`, { replace: true });
     } catch (e) {
@@ -47,7 +51,7 @@ export default function TerminosPage() {
       <div className="terms-box">
         <div className="card card-pad stack" style={{ gap: 16 }}>
           <div className="row" style={{ gap: 12 }}>
-            <span className="logo-badge logo-top">☘</span>
+            <span className="logo-badge logo-top"><Icon name="leaf" size={20} /></span>
             <div>
               <h2 style={{ fontSize: 19 }}>Términos del servicio de soporte</h2>
               <p className="muted small" style={{ margin: '2px 0 0' }}>Antes de iniciar la conversación</p>
@@ -58,7 +62,7 @@ export default function TerminosPage() {
             {cargandoConfig && <Cargando texto="Cargando términos…" />}
             {config && (
               <>
-                <p>{config.terminosSoporte}</p>
+                <p>{textoTerminos}</p>
                 <p>
                   Al continuar aceptas que la información que compartas (mensajes, imágenes y
                   evidencias) podrá ser consultada por el equipo de administración y utilizada
@@ -69,6 +73,7 @@ export default function TerminosPage() {
                   La IA de soporte no realiza acciones administrativas sobre otros usuarios ni elimina
                   contenido: solo clasifica, atiende y escala los casos a un administrador humano.
                 </p>
+                <p className="muted small">Versión de los términos: {versionTerminos}</p>
               </>
             )}
           </div>

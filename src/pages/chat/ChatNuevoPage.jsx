@@ -4,24 +4,25 @@ import { useApp } from '../../store/AppContext.jsx';
 import { useAsync } from '../../hooks/useAsync.js';
 import { casosMios } from '../../services/supportService.js';
 import { Avatar, Pill, Cargando, ErrorBox } from '../../components/ui.jsx';
+import Icon from '../../components/Icons.jsx';
 import NotifBell from '../../components/NotifBell.jsx';
 import ThemeToggle from '../../components/ThemeToggle.jsx';
 import { infoCaso, CATEGORIA_CASO } from '../../utils/states.js';
 import { fmtFecha, hace } from '../../utils/format.js';
 
 const categorias = [
-  [CATEGORIA_CASO.RETO, '🏆 Retos y evidencias'],
-  [CATEGORIA_CASO.CONTENIDO, '🚩 Reportar contenido'],
-  [CATEGORIA_CASO.CUENTA, '👤 Cuenta y acceso'],
-  [CATEGORIA_CASO.MONEDERO, '🪙 Monedas / monedero'],
-  [CATEGORIA_CASO.OTRO, '🧩 Otro problema'],
+  [CATEGORIA_CASO.RETO, 'Retos y evidencias', 'star'],
+  [CATEGORIA_CASO.CONTENIDO, 'Reportar contenido', 'flag'],
+  [CATEGORIA_CASO.CUENTA, 'Cuenta y acceso', 'user'],
+  [CATEGORIA_CASO.MONEDERO, 'Monedas / monedero', 'receipt'],
+  [CATEGORIA_CASO.OTRO, 'Otro problema', 'info'],
 ];
 
 const frecuentes = [
-  { icono: '📸', titulo: 'No puedo subir mi evidencia', texto: 'Me sale un error al enviar la foto de mi reto.' },
-  { icono: '🪙', titulo: 'No me llegan las monedas', texto: 'Completé un reto y no se sumaron las monedas a mi monedero.' },
-  { icono: '🚩', titulo: 'Reportar contenido', texto: 'Vi una publicación inapropiada en el muro comunitario.' },
-  { icono: '🔑', titulo: 'Problema con mi cuenta', texto: 'No puedo iniciar sesión o cambiar mi correo.' },
+  { icono: 'image', titulo: 'No puedo subir mi evidencia', texto: 'Me sale un error al enviar la foto de mi reto.' },
+  { icono: 'receipt', titulo: 'No me llegan las monedas', texto: 'Completé un reto y no se sumaron las monedas a mi monedero.' },
+  { icono: 'flag', titulo: 'Reportar contenido', texto: 'Vi una publicación inapropiada en el muro comunitario.' },
+  { icono: 'lock', titulo: 'Problema con mi cuenta', texto: 'No puedo iniciar sesión o cambiar mi correo.' },
 ];
 
 export default function ChatNuevoPage() {
@@ -61,7 +62,7 @@ export default function ChatNuevoPage() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <header className="topbar">
         <div className="row" style={{ gap: 10 }}>
-          <span className="logo-badge logo-top">☘</span>
+          <span className="logo-badge logo-top"><Icon name="leaf" size={20} /></span>
           <div>
             <b>Centro de soporte</b>
             <div className="small muted">Eco-Retos</div>
@@ -81,7 +82,7 @@ export default function ChatNuevoPage() {
 
       <div className="content">
         <div className="hero card card-pad">
-          <h2 style={{ fontSize: 24 }}>¿En qué podemos ayudarte? 🌱</h2>
+          <h2 style={{ fontSize: 24 }}>¿En qué podemos ayudarte?</h2>
           <p className="hero-sub">
             Cuéntanos el problema. La IA te hará preguntas, pedirá evidencia si hace falta y, si el
             caso es importante, lo escalará a un administrador humano.
@@ -95,14 +96,14 @@ export default function ChatNuevoPage() {
             <div className="field">
               <label>Categoría del problema</label>
               <div className="chips">
-                {categorias.map(([val, lbl]) => (
+                {categorias.map(([val, lbl, icono]) => (
                   <button
                     type="button"
                     key={val}
                     className={`chip ${categoria === val ? 'chip-on' : ''}`}
                     onClick={() => setCategoria(val)}
                   >
-                    {lbl}
+                    <Icon name={icono} size={14} /> {lbl}
                   </button>
                 ))}
               </div>
@@ -134,7 +135,7 @@ export default function ChatNuevoPage() {
             </div>
 
             <button className="btn btn-primary" style={{ alignSelf: 'flex-end' }}>
-              Continuar a los términos →
+              Continuar a los términos
             </button>
           </form>
 
@@ -144,7 +145,7 @@ export default function ChatNuevoPage() {
               <div className="stack mt" style={{ gap: 8 }}>
                 {frecuentes.map((f) => (
                   <button type="button" key={f.titulo} className="frecuente" onClick={() => prellenar(f)}>
-                    <span>{f.icono}</span>
+                    <span className="frecuente-ico"><Icon name={f.icono} size={18} /></span>
                     <span style={{ textAlign: 'left' }}>
                       <span className="frecuente-titulo">{f.titulo}</span>
                       <span className="frecuente-sub">{f.texto}</span>
@@ -182,7 +183,7 @@ export default function ChatNuevoPage() {
           {historial && historial.length === 0 && (
             <div className="card card-pad">
               <p className="muted small" style={{ margin: 0 }}>
-                Aún no tienes conversaciones. Inicia la primera arriba. 🌱
+                Aún no tienes conversaciones. Inicia la primera arriba.
               </p>
             </div>
           )}

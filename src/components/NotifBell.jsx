@@ -1,16 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notificacionesDe, marcarLeida, marcarTodasLeidas } from '../services/notificacionesService.js';
-import { DEMO_MODE } from '../api/config.js';
+import { usePolling } from '../hooks/usePolling.js';
+import Icon from './Icons.jsx';
 import { hace } from '../utils/format.js';
 
 const ICONO = {
-  SOPORTE: '💬',
-  CASO_ESCALADO: '🚨',
-  CASO_ASIGNADO: '👨‍💼',
-  CASO_RESUELTO: '✅',
-  RETO_APROBADO: '🎉',
-  RETO_RECHAZADO: '⚠️',
+  SOPORTE: 'chat',
+  CASO_ESCALADO: 'alert',
+  CASO_ASIGNADO: 'user',
+  CASO_RESUELTO: 'check',
+  RETO_APROBADO: 'check',
+  RETO_RECHAZADO: 'alert',
+  NUEVO_REPORTE: 'flag',
+  CONTENIDO: 'shield',
+  PUBLICACION: 'image',
+  COMENTARIO: 'chat',
 };
 
 export default function NotifBell({ usuarioId, esAdmin = false }) {
@@ -23,19 +28,18 @@ export default function NotifBell({ usuarioId, esAdmin = false }) {
     try {
       setItems(await notificacionesDe(usuarioId));
     } catch {
-      /* sin conexión: se reintenta al refrescar */
+      /* sin conexión: se reintenta en el siguiente sondeo */
     }
   }, [usuarioId]);
 
   useEffect(() => {
-    cargar();
     document.addEventListener('er.ui:refresh', cargar);
-    const timer = DEMO_MODE ? null : setInterval(cargar, 25000);
-    return () => {
-      document.removeEventListener('er.ui:refresh', cargar);
-      if (timer) clearInterval(timer);
-    };
+    return () => document.removeEventListener('er.ui:refresh', cargar);
   }, [cargar]);
+
+  /* Sondeo propio de notificaciones (20 s), pausado en segundo plano.
+     La primera consulta la realiza el propio hook al montar. */
+  usePolling(cargar, { intervaloMs: 20000 });
 
   useEffect(() => {
     const fuera = (e) => {
@@ -56,8 +60,18 @@ export default function NotifBell({ usuarioId, esAdmin = false }) {
     if (!n.leida) await marcarLeida(n.id, usuarioId);
     setAbierto(false);
     cargar();
-    if (n.referenciaTipo === 'CASO' && n.referenciaId) {
-      navigate(esAdmin ? `/admin/casos/${n.referenciaId}` : `/soporte/casos/${n.referenciaId}`);
+
+    const tipo = String(n.referenciaTipo ?? '').toUpperCase();
+    const id = n.referenciaId;
+    if (!id) return;
+    if (tipo === 'SUPPORTCASE' || tipo === 'CASO') {
+      navigate(esAdmin ? `/admin/casos/${id}` : `/soporte/casos/${id}`);
+    } else if (tipo === 'REPORTE') {
+      navigate(esAdmin ? '/admin/reportes' : '/soporte');
+    } else if (tipo === 'PUBLICACION') {
+      navigate(esAdmin ? '/admin/reportes' : '/soporte');
+    } else if (tipo === 'USUARIO_RETO') {
+      navigate(esAdmin ? '/admin/evidencias' : '/soporte');
     }
   };
 
@@ -69,7 +83,7 @@ export default function NotifBell({ usuarioId, esAdmin = false }) {
         onClick={() => setAbierto((v) => !v)}
         aria-label={`Notificaciones${noLeidas ? ` (${noLeidas} sin leer)` : ''}`}
       >
-        🔔
+        <Icon name="bell" size={18} />
         {noLeidas > 0 && <span className="notif-badge">{noLeidas > 9 ? '9+' : noLeidas}</span>}
       </button>
 
@@ -92,7 +106,7 @@ export default function NotifBell({ usuarioId, esAdmin = false }) {
                 className={`notif-item ${n.leida ? '' : 'no-leida'}`}
                 onClick={() => abrirItem(n)}
               >
-                <span className="notif-ico">{ICONO[n.tipo] ?? '🔔'}</span>
+                <span className="notif-ico"><Icon name={ICONO[n.tipo] ?? 'bell'} size={16} /></span>
                 <span style={{ minWidth: 0, textAlign: 'left' }}>
                   <span className="notif-titulo">{n.titulo}</span>
                   <span className="notif-msg">{n.mensaje}</span>

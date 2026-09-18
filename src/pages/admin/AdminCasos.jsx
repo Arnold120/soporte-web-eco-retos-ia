@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { casosAdmin } from '../../services/supportService.js';
 import { useAsync } from '../../hooks/useAsync.js';
 import { usePaginacion } from '../../hooks/usePaginacion.js';
-import { Pill, EmptyState, Cargando, ErrorBox } from '../../components/ui.jsx';
+import { Pill, EmptyState, Cargando, ErrorBox, NewBadge } from '../../components/ui.jsx';
+import Icon from '../../components/Icons.jsx';
 import Pagination from '../../components/Pagination.jsx';
+import { useNuevosIds } from '../../hooks/useNuevosIds.js';
 import {
   infoCaso,
   infoPrioridad,
@@ -43,6 +45,7 @@ export default function AdminCasos() {
   }, [recargar]);
 
   const lista = useMemo(() => datos ?? [], [datos]);
+  const nuevos = useNuevosIds(lista);
   const pag = usePaginacion(lista, 10);
 
   const exportar = () => {
@@ -69,9 +72,11 @@ export default function AdminCasos() {
           </p>
         </div>
         <div className="row">
-          <button className="btn btn-ghost btn-sm" onClick={recargar}>↻</button>
+          <button className="btn btn-ghost btn-sm" onClick={recargar} title="Actualizar ahora">
+            <Icon name="refresh" size={16} />
+          </button>
           <button className="btn btn-ghost btn-sm" onClick={exportar} disabled={lista.length === 0}>
-            ⬇ Exportar CSV
+            <Icon name="download" size={16} /> Exportar CSV
           </button>
         </div>
       </div>
@@ -112,7 +117,7 @@ export default function AdminCasos() {
         <div className="card">
           <div className="tbl-wrap">
             {lista.length === 0 ? (
-              <EmptyState icono="🎫" titulo="Sin casos" texto="No hay casos con los filtros actuales." />
+              <EmptyState icono="ticket" titulo="Sin casos" texto="No hay casos con los filtros actuales." />
             ) : (
               <table className="tbl">
                 <thead>
@@ -123,8 +128,11 @@ export default function AdminCasos() {
                 </thead>
                 <tbody>
                   {pag.visibles.map((c) => (
-                    <tr className="row-click" key={c.id} onClick={() => navigate(`/admin/casos/${c.id}`)}>
-                      <td style={{ fontWeight: 700 }}>#{c.id}</td>
+                    <tr className={`row-click ${nuevos.has(c.id) ? 'fila-nueva' : ''}`} key={c.id} onClick={() => navigate(`/admin/casos/${c.id}`)}>
+                      <td style={{ fontWeight: 700 }}>
+                        #{c.id}
+                        {nuevos.has(c.id) && <NewBadge />}
+                      </td>
                       <td style={{ maxWidth: 300 }}>
                         <div style={{ fontWeight: 700 }} className="ellipsis">{c.titulo}</div>
                         <div className="small muted">{c.descripcion}</div>

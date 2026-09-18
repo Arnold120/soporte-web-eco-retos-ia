@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Base de datos demo (MODO DEMO).
  *
  * Persistida en localStorage. Cada mutación emite el evento
@@ -175,7 +175,7 @@ function seed() {
   const messages = [
     // Caso 101 — chat con IA + admin
     mensaje(101, TIPO_REMITENTE.USUARIO, 'Estoy teniendo problemas con un reto.', 227),
-    mensaje(101, TIPO_REMITENTE.IA, 'Hola María 👋 Entiendo, voy a ayudarte a identificar el problema. ¿Qué reto estás intentando completar y qué pasa exactamente al enviar la evidencia?', 226.5),
+    mensaje(101, TIPO_REMITENTE.IA, 'Hola María. Entiendo, voy a ayudarte a identificar el problema. ¿Qué reto estás intentando completar y qué pasa exactamente al enviar la evidencia?', 226.5),
     mensaje(101, TIPO_REMITENTE.USUARIO, 'Es el reto de reciclaje "Separa tus residuos". Cuando subo la foto de la evidencia me queda en "En revisión" y no avanza.', 225),
     mensaje(101, TIPO_REMITENTE.IA, 'Gracias, eso me ayuda. ¿La foto que intentas subir es un archivo JPG o PNG tomado con tu celular? ¿Recibes algún mensaje de error en pantalla?', 224),
     mensaje(101, TIPO_REMITENTE.USUARIO, 'Sí, es JPG de mi celular. Sale un error que dice "archivo no válido".', 223),
@@ -184,7 +184,7 @@ function seed() {
     ]),
     mensaje(101, TIPO_REMITENTE.ADMIN, 'Hola María, soy un administrador del soporte. Ya revisé tu captura: el archivo pesa 9.2 MB y supera el límite de 8 MB. Comprime la foto o reduce la resolución y vuelve a intentarlo.', 90),
     mensaje(101, TIPO_REMITENTE.ADMIN, 'En Configuración > Cambiar contraseña no hay vínculo con esto; utiliza cualquier app de compresión o reenvía la foto por WhatsApp para que se comprima automáticamente.', 89),
-    mensaje(101, TIPO_REMITENTE.USUARIO, '¡Gracias! Comprimí la imagen y ya pude enviar la evidencia. 🙌', 42),
+    mensaje(101, TIPO_REMITENTE.USUARIO, '¡Gracias! Comprimí la imagen y ya pude enviar la evidencia.', 42),
     mensaje(101, TIPO_REMITENTE.ADMIN, 'Perfecto, queda en revisión por el equipo. Cualquier cosa, aquí estamos.', 40),
     // Caso 102 — reporte de contenido escalado
     mensaje(102, TIPO_REMITENTE.USUARIO, 'Quiero reportar una publicación que vi en el muro, es inapropiada.', 164),
@@ -199,7 +199,7 @@ function seed() {
     mensaje(103, TIPO_REMITENTE.IA, 'Entiendo. ¿El reto figura como "Completado" en tu lista o sigue en "En revisión"?', 408),
     mensaje(103, TIPO_REMITENTE.USUARIO, 'Aparece como completado desde ayer.', 407),
     mensaje(103, TIPO_REMITENTE.IA, 'Gracias. Las monedas se acreditan automáticamente dentro de las 24 h posteriores a su aprobación. Si pasado ese tiempo no aparecen, este chat queda abierto para revisarlo. Tu caso lo resolví con esta información.', 406),
-    mensaje(103, TIPO_REMITENTE.IA, 'Caso resuelto ✔️ Si después de 24 h no ves las monedas, abre un nuevo caso y lo escalamos a un administrador.', 406),
+    mensaje(103, TIPO_REMITENTE.IA, 'Caso resuelto. Si después de 24 h no ves las monedas, abre un nuevo caso y lo escalamos a un administrador.', 406),
     // Caso 104 — cerrado tras admin
     mensaje(104, TIPO_REMITENTE.USUARIO, 'Quiero cambiar el correo de mi cuenta, ¿cómo lo hago?', (3 * 24 * 60) + 29),
     mensaje(104, TIPO_REMITENTE.IA, 'Claro. Si tu correo es para iniciar sesión, puedes cambiarlo desde Configuración > "Nombre de usuario y correo". ¿Necesitas ayuda con el proceso?', (3 * 24 * 60) + 28),
@@ -293,9 +293,9 @@ function seed() {
 
   const notifications = [
     notif(2, 'Tus evidencias pendientes', 'La IA resolvió tu caso: comprime la imagen a menos de 8 MB para enviar tu evidencia.', 'SOPORTE', 101, false, 40),
-    notif(2, 'Reto aprobado 🎉', 'Tu evidencia del reto "Separa tus residuos" fue aprobada.', 'RETO_APROBADO', 601, false, 30),
+    notif(2, 'Reto aprobado', 'Tu evidencia del reto "Separa tus residuos" fue aprobada.', 'RETO_APROBADO', 601, false, 30),
     notif(3, 'Caso escalado', 'Tu reporte de contenido fue escalado a un administrador humano.', 'CASO_ESCALADO', 102, false, 65),
-    notif(4, 'Reto aprobado 🎉', 'Tu evidencia del reto "Movilidad sostenible" fue aprobada.', 'RETO_APROBADO', 603, false, 1500),
+    notif(4, 'Reto aprobado', 'Tu evidencia del reto "Movilidad sostenible" fue aprobada.', 'RETO_APROBADO', 603, false, 1500),
     notif(2, 'Reto rechazado', 'Tu evidencia del reto "Planta un árbol" fue rechazada. Revisa el motivo.', 'RETO_RECHAZADO', 604, true, 6000),
     notif(1, 'Nuevo caso escalado', 'maria.lopez escaló un caso: "No puedo subir la evidencia de mi reto de reciclaje".', 'CASO_ESCALADO', 101, false, 60),
     notif(5, 'Nuevo caso asignado', 'Se te asignó el caso #104 de maria.lopez.', 'CASO_ASIGNADO', 104, true, 300),
